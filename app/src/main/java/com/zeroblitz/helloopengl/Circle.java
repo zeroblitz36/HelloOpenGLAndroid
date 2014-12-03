@@ -1,6 +1,5 @@
 package com.zeroblitz.helloopengl;
 
-import android.graphics.Shader;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
@@ -16,11 +15,10 @@ public class Circle {
     private static final int SIZE_OF_FLOAT = 4;
     private final FloatBuffer vertexBuffer;
     private int mProgram;
-    private int mPositionHandle;
-    private int mColorHandle;
-    private int mMVPMatrixHandle;
-    static final int COORDS_PER_VERTEX = 3;
-    private float coords[];
+    private int aPositionHandle;
+    private int uColorHandle;
+    private int uMVPMatrixHandle;
+    private static final int COORDS_PER_VERTEX = 3;
     private int vertexCount;
     private int vertexStride = COORDS_PER_VERTEX * SIZE_OF_FLOAT;
 
@@ -33,7 +31,8 @@ public class Circle {
     public Circle(int n){
         if(n<3) n = 3;
         vertexCount = n+2;
-        coords = new float[vertexCount*COORDS_PER_VERTEX];
+
+        float coords[] = new float[vertexCount*COORDS_PER_VERTEX];
         coords[0]=0;
         coords[1]=0;
         coords[2]=0;
@@ -54,6 +53,9 @@ public class Circle {
         vertexBuffer.position(0);
 
         mProgram = CustomShader.createProgram(CustomShader.simpleVertexShaderCode, CustomShader.simpleFragmentShaderCode);
+        aPositionHandle = GLES20.glGetAttribLocation(mProgram, CustomShader.aPosition);
+        uColorHandle = GLES20.glGetUniformLocation(mProgram, CustomShader.uColor);
+        uMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, CustomShader.uMVPMatrix);
         Matrix.setIdentityM(position, 0);
         Matrix.setIdentityM(rotation, 0);
     }
@@ -61,20 +63,16 @@ public class Circle {
     public void draw(float[] mvpMatrix){
         GLES20.glUseProgram(mProgram);
 
-        mPositionHandle = GLES20.glGetAttribLocation(mProgram, CustomShader.vPosition);
-        GLES20.glEnableVertexAttribArray(mPositionHandle);
-        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
+        GLES20.glEnableVertexAttribArray(aPositionHandle);
+        GLES20.glVertexAttribPointer(aPositionHandle, COORDS_PER_VERTEX,
                 GLES20.GL_FLOAT, false,
                 vertexStride, vertexBuffer);
 
-        mColorHandle = GLES20.glGetUniformLocation(mProgram, CustomShader.vColor);
-        GLES20.glUniform4fv(mColorHandle, 1, color,0);
-
-        mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, CustomShader.uMVPMatrix);
+        GLES20.glUniform4fv(uColorHandle, 1, color,0);
 
         Matrix.multiplyMM(scratch, 0, mvpMatrix, 0, position, 0);
         Matrix.multiplyMM(scratch2, 0, scratch, 0, rotation, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, scratch2,0);
+        GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, scratch2,0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, vertexCount);
     }
