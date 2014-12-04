@@ -1,6 +1,7 @@
 package com.zeroblitz.helloopengl;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 /**
  * Created by Roscaneanu on 22.11.2014.
@@ -56,6 +57,21 @@ public class CustomShader {
                 vColor+"="+aColor+" * diffuse;"+
                 "gl_Position = "+uMVPMatrix +" * "+aPosition+";"+
             "}";
+    public static final String pointVertexShader =
+            "uniform mat4 "+uMVPMatrix+";"+
+            "attribute vec4 "+aPosition+";"+
+            "void main(){"+
+                //"gl_Position = vec4(0.0,0.0,0.0,1.0);"+
+                "gl_Position = "+uMVPMatrix+" * "+aPosition+";"+
+                "gl_PointSize = 5.0;"+
+            "}";
+    public static final String pointFragmentShader =
+            "precision mediump float;"+
+            "void main(){"+
+                "gl_FragColor = vec4(1.0,1.0,1.0,1.0);"+
+
+            "}";
+
     public static int createProgram(String vertexShader,String fragmentShader){
         int v = loadShader(GLES20.GL_VERTEX_SHADER, vertexShader);
         int f = loadShader(GLES20.GL_FRAGMENT_SHADER,fragmentShader);
@@ -66,15 +82,23 @@ public class CustomShader {
         return p;
     }
     public static int loadShader(int type, String shaderCode){
-
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
         // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
         int shader = GLES20.glCreateShader(type);
 
-        // add the source code to the shader and compile it
+        if(shader==0){
+            throw new RuntimeException("Error creating shader.");
+        }
+
         GLES20.glShaderSource(shader, shaderCode);
         GLES20.glCompileShader(shader);
-
+        final int[] compileStatus = new int[1];
+        GLES20.glGetShaderiv(shader,GLES20.GL_COMPILE_STATUS,compileStatus,0);
+        if(compileStatus[0]==0){
+            Log.e("Shader","Error compilling shader: "+GLES20.glGetShaderInfoLog(shader));
+            GLES20.glDeleteShader(shader);
+            shader = 0;
+        }
         return shader;
     }
 }

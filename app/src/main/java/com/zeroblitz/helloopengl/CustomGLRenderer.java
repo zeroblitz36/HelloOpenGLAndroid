@@ -13,6 +13,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class CustomGLRenderer implements GLSurfaceView.Renderer{
     private static final String TAG = "MyGLRenderer";
     private Circle circle;
+    private LightPoint lightPoint;
 
     private final float[] mvpMatrix = new float[16];
     private final float[] projectionMatrix = new float[16];
@@ -31,7 +32,8 @@ public class CustomGLRenderer implements GLSurfaceView.Renderer{
 
         circle = new Circle(6);
         circle.moveTo(0,0,-2);
-
+        lightPoint = new LightPoint();
+        lightPoint.moveTo(0,0,0);
     }
 
     @Override
@@ -60,5 +62,7 @@ public class CustomGLRenderer implements GLSurfaceView.Renderer{
         float angle = v * time;
         circle.rotateAroundAxis(angle,0,0,1);
         circle.draw(mvpMatrix);
+        lightPoint.moveTo((float)Math.cos(angle/180*Math.PI),(float)Math.sin(angle/180*Math.PI),0);
+        lightPoint.draw(mvpMatrix);
     }
 }

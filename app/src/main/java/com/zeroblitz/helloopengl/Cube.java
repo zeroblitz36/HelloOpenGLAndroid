@@ -7,17 +7,16 @@ import android.opengl.Matrix;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 
 /**
  * Created by Roscaneanu on 03.12.2014.
  */
 public class Cube {
     private static final int SIZE_OF_FLOAT = 4;
-    private static final int SIZE_OF_SHORT = 2;
 
     private final FloatBuffer vertexBuffer;
-    private final ShortBuffer drawListBuffer;
+    private final FloatBuffer colorBuffer;
+    private final FloatBuffer normalBuffer;
 
     private int mProgram;
     private int uMVPMatrixHandle;
@@ -30,28 +29,153 @@ public class Cube {
 
     private static final int COORDS_PER_VERTEX = 3;
     private final float coords[] = {
-            -0.5f, -0.5f, -0.5f,
-             0.5f, -0.5f, -0.5f,
-             0.5f,  0.5f, -0.5f,
-            -0.5f,  0.5f, -0.5f,
-            -0.5f, -0.5f,  0.5f,
-             0.5f, -0.5f,  0.5f,
-             0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f
+            // Front face
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+
+            // Right face
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+
+            // Back face
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+
+            // Left face
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+
+            // Top face
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+
+            // Bottom face
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
     };
-    private final short drawOrder[] = {
-            // Down
-            0, 1, 2, 0, 2, 3,
-            // West
-            0, 4, 7, 0, 7, 3,
-            // North
-            3, 7, 6, 3, 6, 2,
-            // East
-            2, 5, 1, 2, 6, 5,
-            // South
-            0, 5, 4, 0, 1, 5,
-            // Up
-            4, 6, 7, 4, 5, 6 };
+    private final float[] colors ={
+            // Front face (red)
+            1.0f, 0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f, 1.0f,
+
+            // Right face (green)
+            0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f, 1.0f,
+
+            // Back face (blue)
+            0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f, 1.0f,
+
+            // Left face (yellow)
+            1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 0.0f, 1.0f,
+
+            // Top face (cyan)
+            0.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 1.0f, 1.0f, 1.0f,
+
+            // Bottom face (magenta)
+            1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f, 1.0f
+    };
+    final float[] normals ={
+            // Front face
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+
+            // Right face
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+
+            // Back face
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+
+            // Left face
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+
+            // Top face
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+
+            // Bottom face
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f
+    };
+
     private int vertexCount = coords.length / COORDS_PER_VERTEX;
     private int vertexStride = COORDS_PER_VERTEX * SIZE_OF_FLOAT;
 
@@ -60,6 +184,7 @@ public class Cube {
     public final float position[] = new float[16];
     public final float rotation[] = new float[16];
     public final float lightPosition[] = new float[16];
+
     public Cube(){
         ByteBuffer bb = ByteBuffer
                 .allocateDirect(coords.length * SIZE_OF_FLOAT);
@@ -67,10 +192,15 @@ public class Cube {
         vertexBuffer = bb.asFloatBuffer();
         vertexBuffer.put(coords).position(0);
 
-        bb = ByteBuffer.allocateDirect(drawOrder.length * SIZE_OF_SHORT);
+        bb = ByteBuffer.allocateDirect(colors.length * SIZE_OF_FLOAT);
         bb.order(ByteOrder.nativeOrder());
-        drawListBuffer = bb.asShortBuffer();
-        drawListBuffer.put(drawOrder).position(0);
+        colorBuffer = bb.asFloatBuffer();
+        colorBuffer.put(colors).position(0);
+
+        bb = ByteBuffer.allocateDirect(normals.length * SIZE_OF_FLOAT);
+        bb.order(ByteOrder.nativeOrder());
+        normalBuffer = bb.asFloatBuffer();
+        colorBuffer.put(normals).position(0);
 
         mProgram = CustomShader.createProgram(CustomShader.gouradVertexShader,
                 CustomShader.simpleFragmentShaderCode);
