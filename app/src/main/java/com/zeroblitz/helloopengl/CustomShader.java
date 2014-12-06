@@ -52,10 +52,23 @@ public class CustomShader {
                 "vec3 modelViewNormal = vec3("+uMVMatrix+" * vec4("+aNormal+" , 0.0));"+
                 "float distance = length("+uLightPos+" - modelViewVertex);"+
                 "vec3 lightVector = normalize("+uLightPos+" - modelViewVertex);"+
+
+                //"lightVector = vec3(0,0,-1);"+
                 "float diffuse = max(dot(modelViewNormal, lightVector),0.1);"+
                 "diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));"+
                 vColor+"="+aColor+" * diffuse;"+
+                "if("+uLightPos+".z <= 0.0){"+vColor+" = vec4(1.0,1.0,1.0,1.0);}"+
+                //"if(dot(modelViewNormal, lightVector) < 0.0){"+vColor+" = vec4(1.0,1.0,1.0,1.0);}"+
+                //vColor+"="+aColor+";"+
+                //vColor+"= vec4(1.0,0.0,0.0,1.0);"+
                 "gl_Position = "+uMVPMatrix +" * "+aPosition+";"+
+            "}";
+    public static final String gouradFragmentShader =
+            "precision mediump float;"+
+            "varying vec4 "+vColor+";"+
+            "void main(){"+
+                //"gl_FragColor = vec4(1.0,0.0,0.0,1.0);"+
+                "gl_FragColor = "+vColor+";"+
             "}";
     public static final String pointVertexShader =
             "uniform mat4 "+uMVPMatrix+";"+
@@ -63,21 +76,25 @@ public class CustomShader {
             "void main(){"+
                 //"gl_Position = vec4(0.0,0.0,0.0,1.0);"+
                 "gl_Position = "+uMVPMatrix+" * "+aPosition+";"+
-                "gl_PointSize = 5.0;"+
+                "gl_PointSize = 10.0;"+
             "}";
     public static final String pointFragmentShader =
             "precision mediump float;"+
             "void main(){"+
                 "gl_FragColor = vec4(1.0,1.0,1.0,1.0);"+
-
             "}";
 
-    public static int createProgram(String vertexShader,String fragmentShader){
+    public static int createProgram(String vertexShader,String fragmentShader,final String[] attributes){
         int v = loadShader(GLES20.GL_VERTEX_SHADER, vertexShader);
         int f = loadShader(GLES20.GL_FRAGMENT_SHADER,fragmentShader);
         int p = GLES20.glCreateProgram();
         GLES20.glAttachShader(p, v);
         GLES20.glAttachShader(p, f);
+        if(attributes!=null){
+            final int size = attributes.length;
+            for(int i = 0 ;i<size;i++)
+                GLES20.glBindAttribLocation(p,i,attributes[i]);
+        }
         GLES20.glLinkProgram(p);
         return p;
     }

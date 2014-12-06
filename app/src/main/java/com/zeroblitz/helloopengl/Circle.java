@@ -52,7 +52,7 @@ public class Circle {
         vertexBuffer.put(coords);
         vertexBuffer.position(0);
 
-        mProgram = CustomShader.createProgram(CustomShader.simpleVertexShaderCode, CustomShader.simpleFragmentShaderCode);
+        mProgram = CustomShader.createProgram(CustomShader.simpleVertexShaderCode, CustomShader.simpleFragmentShaderCode, null);
         aPositionHandle = GLES20.glGetAttribLocation(mProgram, CustomShader.aPosition);
         uColorHandle = GLES20.glGetUniformLocation(mProgram, CustomShader.uColor);
         uMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, CustomShader.uMVPMatrix);
